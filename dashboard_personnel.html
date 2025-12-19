@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard บุคลากรคณะ - ผศ.ชาตรี งามเสงี่ยม</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .header .date {
+            color: #999;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card .label {
+            color: #888;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stat-card.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .stat-card.primary .label {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .stat-card.primary .value {
+            color: white;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .chart-card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .table-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        .table-card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .male {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .female {
+            color: #e91e63;
+            font-weight: bold;
+        }
+        
+        .percentage-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .percentage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db 0%, #e91e63 100%);
+            transition: width 0.5s ease;
+        }
+        
+        .insights-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            color: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .insights-card h3 {
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        
+        .insights-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .insights-card li {
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .insights-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dashboard บุคลากรคณะวิศวกรรมศาสตร์</h1>
+            <div class="subtitle">ข้อมูลเพื่อการวางแผนบริหาร - ผศ.ชาตรี งามเสงี่ยม</div>
+            <div class="date">อัพเดท: ธันวาคม 2567</div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="label">บุคลากรทั้งหมด</div>
+                <div class="value">62 คน</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">จำนวนสาขา/ฝ่าย</div>
+                <div class="value">9</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">บุคลากรชาย</div>
+                <div class="value male">35 คน</div>
+                <div class="percentage-bar">
+                    <div class="percentage-fill" style="width: 56.5%;"></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="label">บุคลากรหญิง</div>
+                <div class="value female">27 คน</div>
+                <div class="percentage-bar">
+                    <div class="percentage-fill" style="width: 43.5%; background: #e91e63;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>📈 จำนวนบุคลากรตามสาขา/ฝ่าย</h3>
+                <canvas id="barChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>⚖️ สัดส่วนบุคลากรตามสาขา</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>👥 การกระจายตามเพศในแต่ละสาขา</h3>
+                <canvas id="stackedChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>📊 เปรียบเทียบสัดส่วนชาย-หญิง</h3>
+                <canvas id="radarChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="table-card">
+            <h3>📋 ข้อมูลละเอียดบุคลากรแต่ละสาขา</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>สาขา/ฝ่าย</th>
+                        <th>จำนวนรวม</th>
+                        <th>ชาย</th>
+                        <th>หญิง</th>
+                        <th>อัตราส่วน</th>
+                        <th>บทบาทสำคัญ</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTable"></tbody>
+            </table>
+        </div>
+        
+        <div class="insights-card">
+            <h3>💡 ข้อสังเกตสำคัญเพื่อการบริหาร</h3>
+            <ul>
+                <li>สำนักงานคณบดีมีบุคลากรมากที่สุด (22.6%) ควรพิจารณาประสิทธิภาพการทำงาน</li>
+                <li>วิศวกรรมโยธาและเทคโนโลยีพลังงานมีเฉพาะบุคลากรชาย อาจต้องส่งเสริมความหลากหลาย</li>
+                <li>สาขาวิศวกรรม 5 สาขามีจำนวนเท่ากันที่ 5 คน อาจต้องวางแผนการขยายตามความต้องการ</li>
+                <li>สัดส่วนชาย-หญิงโดยรวม 56.5:43.5 ค่อนข้างสมดุล</li>
+                <li>การออกแบบสร้างสรรค์เป็นสาขาที่ใหญ่เป็นอันดับ 2 สะท้อนทิศทางการศึกษาสมัยใหม่</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // ข้อมูลจากไฟล์
+        const data = [
+            {dept: "สำนักงานคณบดี", total: 14, male: 3, female: 11, role: "บริหารจัดการ, งานวิศวกร, งานอนามัย"},
+            {dept: "การออกแบบสร้างสรรค์", total: 11, male: 4, female: 7, role: "นวัตกรรมออกแบบ, กราฟิก, แฟชั่น, อัญมณี"},
+            {dept: "วิศวกรรมโยธา", total: 7, male: 7, female: 0, role: "งานโครงสร้าง, แผ่นดินไหว, ทรัพยากรน้ำ"},
+            {dept: "วิศวกรรมการผลิต", total: 5, male: 4, female: 1, role: "การผลิต, วัสดุ, พลังงานเคมี"},
+            {dept: "วิศวกรรมโลจิสติกส์", total: 5, male: 2, female: 3, role: "โซ่อุปทาน, คลังสินค้า, พัฒนาธุรกิจ"},
+            {dept: "วิศวกรรมไฟฟ้า", total: 5, male: 3, female: 2, role: "โทรคมนาคม, เซนเซอร์, ยานยนต์ไฟฟ้า"},
+            {dept: "วิศวกรรมเครื่องกล", total: 5, male: 4, female: 1, role: "พลังงานความร้อน, ยานยนต์ผู้สูงอายุ"},
+            {dept: "เทคโนโลยีพลังงาน", total: 5, male: 5, female: 0, role: "พลังงานทดแทน, การจัดการงานวิศวกรรม"},
+            {dept: "อุตสาหกรรมศิลป์", total: 5, male: 3, female: 2, role: "ออกแบบผลิตภัณฑ์, วัสดุทางเลือก"}
+        ];
+        
+        // กราฟแท่ง
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.dept),
+                datasets: [{
+                    label: 'จำนวนบุคลากร',
+                    data: data.map(d => d.total),
+                    backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+        
+        // กราฟวงกลม
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: data.map(d => d.dept),
+                datasets: [{
+                    data: data.map(d => d.total),
+                    backgroundColor: [
+                        '#667eea', '#764ba2', '#f093fb', '#c471f5',
+                        '#fa709a', '#fee140', '#30cfd0', '#330867', '#5f72bd'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+        
+        // กราฟ Stacked Bar
+        const stackedCtx = document.getElementById('stackedChart').getContext('2d');
+        new Chart(stackedCtx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.dept),
+                datasets: [
+                    {
+                        label: 'ชาย',
+                        data: data.map(d => d.male),
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'หญิง',
+                        data: data.map(d => d.female),
+                        backgroundColor: 'rgba(233, 30, 99, 0.7)',
+                        borderColor: 'rgba(233, 30, 99, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true }
+                }
+            }
+        });
+        
+        // กราฟ Radar
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: data.map(d => d.dept.substring(0, 15)),
+                datasets: [
+                    {
+                        label: 'ชาย',
+                        data: data.map(d => d.male),
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)'
+                    },
+                    {
+                        label: 'หญิง',
+                        data: data.map(d => d.female),
+                        borderColor: 'rgba(233, 30, 99, 1)',
+                        backgroundColor: 'rgba(233, 30, 99, 0.2)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: { beginAtZero: true }
+                }
+            }
+        });
+        
+        // ตาราง
+        const tableBody = document.getElementById('dataTable');
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            const ratio = row.male > 0 && row.female > 0 ? 
+                `${row.male}:${row.female}` : 
+                row.male > 0 ? 'ชายทั้งหมด' : 'หญิงทั้งหมด';
+            
+            tr.innerHTML = `
+                <td>${row.dept}</td>
+                <td style="text-align: center;"><strong>${row.total}</strong></td>
+                <td class="male" style="text-align: center;">${row.male}</td>
+                <td class="female" style="text-align: center;">${row.female}</td>
+                <td style="text-align: center;">${ratio}</td>
+                <td>${row.role}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    </script>
+</body>
+</html>
